@@ -1,28 +1,36 @@
 import React, { useState } from "react";
 
 export interface ScoreInputFormProps {
-  onSubmit: (values: { TBK5: number; TBK6: number; TBK7: number }) => void;
+  labels?: [string, string, string];
+  submitLabel?: string;
+  onSubmit: (values: Record<string, number>) => void;
   loading?: boolean;
 }
 
 export const ScoreInputForm: React.FC<ScoreInputFormProps> = ({
+  labels = ["TBK5", "TBK6", "TBK7"],
+  submitLabel = "Predict TBK8",
   onSubmit,
   loading = false,
 }) => {
-  const [tbk5, setTbk5] = useState<string>("");
-  const [tbk6, setTbk6] = useState<string>("");
-  const [tbk7, setTbk7] = useState<string>("");
+  const [v1, setV1] = useState<string>("");
+  const [v2, setV2] = useState<string>("");
+  const [v3, setV3] = useState<string>("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const v5 = parseFloat(tbk5);
-    const v6 = parseFloat(tbk6);
-    const v7 = parseFloat(tbk7);
-    if (Number.isNaN(v5) || Number.isNaN(v6) || Number.isNaN(v7)) {
+    const n1 = parseFloat(v1);
+    const n2 = parseFloat(v2);
+    const n3 = parseFloat(v3);
+    if (Number.isNaN(n1) || Number.isNaN(n2) || Number.isNaN(n3)) {
       alert("Please enter valid numeric scores for all semesters.");
       return;
     }
-    onSubmit({ TBK5: v5, TBK6: v6, TBK7: v7 });
+    onSubmit({
+      [labels[0]]: n1,
+      [labels[1]]: n2,
+      [labels[2]]: n3,
+    });
   };
 
   return (
@@ -30,41 +38,41 @@ export const ScoreInputForm: React.FC<ScoreInputFormProps> = ({
       <h2>Input Previous Semester Scores</h2>
       <div className="form-grid">
         <label>
-          TBK5
+          {labels[0]}
           <input
             type="number"
             min={0}
             max={10}
             step={0.01}
-            value={tbk5}
-            onChange={(e) => setTbk5(e.target.value)}
+            value={v1}
+            onChange={(e) => setV1(e.target.value)}
           />
         </label>
         <label>
-          TBK6
+          {labels[1]}
           <input
             type="number"
             min={0}
             max={10}
             step={0.01}
-            value={tbk6}
-            onChange={(e) => setTbk6(e.target.value)}
+            value={v2}
+            onChange={(e) => setV2(e.target.value)}
           />
         </label>
         <label>
-          TBK7
+          {labels[2]}
           <input
             type="number"
             min={0}
             max={10}
             step={0.01}
-            value={tbk7}
-            onChange={(e) => setTbk7(e.target.value)}
+            value={v3}
+            onChange={(e) => setV3(e.target.value)}
           />
         </label>
       </div>
       <button type="submit" className="primary-btn" disabled={loading}>
-        {loading ? "Predicting..." : "Predict TBK8"}
+        {loading ? "Predicting..." : submitLabel}
       </button>
     </form>
   );

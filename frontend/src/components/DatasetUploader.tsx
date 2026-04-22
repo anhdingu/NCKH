@@ -1,10 +1,15 @@
 import React, { useState } from "react";
+import { DatasetProfile } from "./DatasetProfilePanel";
 
 export interface DatasetUploaderProps {
   onUploaded?: () => void;
+  onProfileReady?: (profile: DatasetProfile | null) => void;
 }
 
-export const DatasetUploader: React.FC<DatasetUploaderProps> = ({ onUploaded }) => {
+export const DatasetUploader: React.FC<DatasetUploaderProps> = ({
+  onUploaded,
+  onProfileReady,
+}) => {
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -30,6 +35,8 @@ export const DatasetUploader: React.FC<DatasetUploaderProps> = ({ onUploaded }) 
         const text = await res.text();
         throw new Error(text || "Upload failed");
       }
+      const payload = await res.json();
+      onProfileReady?.((payload.profile_preview as DatasetProfile | undefined) ?? null);
       setStatus("File uploaded successfully.");
       onUploaded?.();
     } catch (err) {

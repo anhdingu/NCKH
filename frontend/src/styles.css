@@ -87,6 +87,26 @@ body {
   gap: 0.25rem;
 }
 
+.target-selector {
+  margin-top: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.target-selector label {
+  color: #cbd5e1;
+  font-size: 0.9rem;
+}
+
+.target-selector select {
+  padding: 0.45rem 0.65rem;
+  border-radius: 0.55rem;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: rgba(15, 23, 42, 0.85);
+  color: #e5e7eb;
+}
+
 .page-header h2 {
   margin: 0;
   font-size: 1.6rem;
@@ -229,6 +249,23 @@ input[type="file"]:focus {
 .status {
   margin-top: 0.75rem;
   font-size: 0.9rem;
+}
+
+.correlation-grid {
+  overflow-x: auto;
+}
+
+.correlation-grid table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.correlation-grid th,
+.correlation-grid td {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  padding: 0.35rem 0.45rem;
+  text-align: center;
+  font-size: 0.82rem;
 }
 
 @media (max-width: 768px) {

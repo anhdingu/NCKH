@@ -1,9 +1,16 @@
 import argparse
 from pathlib import Path
+import sys
 from typing import Tuple
 
 import numpy as np
 import pandas as pd
+
+ROOT_DIR = Path(__file__).resolve().parents[2]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.append(str(ROOT_DIR))
+
+from ml.neutrosophic_encoder import encode_sequence
 
 
 PROCESSED_DIR = Path(__file__).resolve().parents[2] / "data" / "processed_dataset"
@@ -62,6 +69,7 @@ def main(
     input_name: str = "clean_semester_scores.csv",
     output_features: str = "X_sliding.csv",
     output_targets: str = "y_sliding.csv",
+    output_neutro: str = "X_neutro.npy",
     window_size: int = 3,
 ) -> None:
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
@@ -78,12 +86,23 @@ def main(
 
     X_path = PROCESSED_DIR / output_features
     y_path = PROCESSED_DIR / output_targets
+    neutro_path = PROCESSED_DIR / output_neutro
 
     X.to_csv(X_path, index=False)
     y.to_csv(y_path, index=False)
 
+    X_neutro = np.stack(
+        [encode_sequence(window.tolist()) for window in X.values.astype(float)],
+        axis=0,
+    ).astype(np.float32)
+    np.save(neutro_path, X_neutro)
+
     print(f"Saved sliding-window features to {X_path.resolve()} with shape {X.shape}")
     print(f"Saved sliding-window targets to {y_path.resolve()} with shape {y.shape}")
+    print(
+        f"Saved neutrosophic tensor to {neutro_path.resolve()} "
+        f"with shape {X_neutro.shape}"
+    )
 
 
 if __name__ == "__main__":
@@ -114,12 +133,19 @@ if __name__ == "__main__":
         default=3,
         help="Sliding window size (number of previous semesters used as features).",
     )
+    parser.add_argument(
+        "--output-neutro",
+        type=str,
+        default="X_neutro.npy",
+        help="Output NPY name for neutrosophic encoded feature tensor.",
+    )
 
     args = parser.parse_args()
     main(
         input_name=args.input_name,
         output_features=args.output_features,
         output_targets=args.output_targets,
+        output_neutro=args.output_neutro,
         window_size=args.window_size,
     )
 
