@@ -1,83 +1,98 @@
-## NCKH Project – Next Semester GPA Prediction
+## NCKH Project - Next Semester GPA Prediction
 
-This project is a complete research system for predicting the **next semester GPA (TBK)** of university students using a **Neutrosophy-Driven Deep Learning** pipeline.
+This repository contains a complete research system to predict students' next semester GPA (`TBK`) using a **Neutrosophy-Driven Deep Learning** pipeline.
 
-### Project Structure
+## Architecture
 
-- `frontend/` – React + Vite web app  
-  - Dashboard with model metrics and charts  
-  - Prediction page with GPA input form  
-  - Dataset upload page  
-- `backend/` – FastAPI server  
-  - Endpoints for prediction, dataset upload, and model metrics  
-  - Loads the best trained model from the `ml/saved_models` folder  
-- `ml/` – Neutrosophic deep-learning pipeline  
-  - `preprocessing/` – Excel loading, cleaning, and basic preprocessing  
-  - `feature_engineering/` – Sliding-window + neutrosophic encoding  
-  - `training/` – Training scripts for RNN, LSTM, and Transformer regressors  
-  - `evaluation/` – Evaluation scripts and metrics persistence  
-  - `saved_models/` – Persisted best model (`best_model.pt`) and metrics (`metrics.json`)  
-- `data/`  
-  - `raw_excel/` – Original Excel files with columns: `ID, TBK1, ..., TBK8`  
-  - `processed_dataset/` – CSV/Parquet datasets after preprocessing and sliding window  
-- `docs/` – Additional documentation and experiment notes
+- `ml/`
+  - `preprocessing/` - Excel merging/cleaning
+  - `feature_engineering/` - sliding window + neutrosophic encoding
+  - `training/` - RNN, LSTM, Transformer training (PyTorch)
+  - `evaluation/` - MAE, RMSE, R2 evaluation
+  - `saved_models/` - trained checkpoints and metrics
+- `backend/` - FastAPI service for prediction and analytics
+- `frontend/` - React + Vite dashboard/prediction/dataset analysis UI
+- `data/`
+  - `raw_excel/` - source Excel files
+  - `processed_dataset/` - generated intermediate datasets
 
-### Data Format
+## Input Data Schema
 
-Raw Excel files must follow this schema:
+Each Excel file must contain:
 
-- `ID` – Student identifier  
-- `TBK1` → `TBK8` – Average score of semesters 1–8
+- `ID`
+- `TBK1`, `TBK2`, `TBK3`, `TBK4`, `TBK5`, `TBK6`, `TBK7`, `TBK8`
 
-The ML pipeline uses:
+## Data Pipeline
 
-1. **Sliding window** transformation so that, for a given window size \(k\):
+1. **Preprocessing**: merge multiple Excel files, validate schema, clean missing values.
+2. **Sliding Window** (`window_size=3`):
+   - `[TBK1, TBK2, TBK3] -> TBK4`
+   - `[TBK2, TBK3, TBK4] -> TBK5`
+   - `[TBK3, TBK4, TBK5] -> TBK6`
+3. **Neutrosophic Encoding**:
+   - 6 linguistic sets: Very Poor, Poor, Fair, Good, Very Good, Excellent
+   - each scalar score is transformed into `(T, I, F)` memberships
+   - model input tensor shape for `window=3`: `(3, 18)`
+4. **Training**: compare `rnn`, `lstm`, `transformer`, save best checkpoint.
+5. **Evaluation**: export `MAE`, `RMSE`, `R2`.
 
-- **Features**: \[TBK\_t, TBK\_{t+1}, ..., TBK\_{t+k-1}\]  
-- **Target**: TBK\_{t+k}
+## Quick Start
 
-For example, with window size 3:
-
-- Input: `TBK1 TBK2 TBK3` → Target: `TBK4`  
-- Input: `TBK2 TBK3 TBK4` → Target: `TBK5`  
-- Input: `TBK3 TBK4 TBK5` → Target: `TBK6`
-
-2. **Neutrosophic encoding** for each score:
-   - Linguistic sets: Very Poor, Poor, Fair, Good, Very Good, Excellent
-   - Trapezoidal memberships compute Truth/Indeterminacy/Falsity (T/I/F)
-   - Final tensor for model input (window=3): `(3, 18)`
-
-### End-to-End Workflow
-
-1. Place Excel files into `data/raw_excel/`.  
-2. Run `ml/preprocessing/preprocess_excel.py` to load and clean the data.  
-3. Run `ml/feature_engineering/create_sliding_window_dataset.py` to build the supervised dataset.  
-4. Run `ml/training/train_models.py` to train RNN, LSTM, and Transformer models on neutrosophic tensors.  
-5. Run `ml/evaluation/evaluate_models.py` to compute metrics (MAE, RMSE, R²) and save `metrics.json`.  
-6. Start the FastAPI backend to serve predictions and metrics.  
-7. Start the React + Vite frontend to interact with the system via browser.
-
-### API Notes
-
-- `POST /predict` returns:
-  - `predicted_TBK8`
-  - `confidence`
-  - `risk_label`
-  - `truths` (truth-membership per linguistic class)
-- `GET /risk-bands` returns trapezoidal parameters for each linguistic class.
-
-### Requirements
-
-Install Python dependencies:
+### 1) Install dependencies
 
 ```bash
 pip install -r requirements.txt
+cd frontend
+npm install
+cd ..
 ```
 
-Install frontend dependencies:
+### 2) Run ML pipeline
+
+```bash
+python .\ml\preprocessing\preprocess_excel.py
+python .\ml\feature_engineering\create_sliding_window_dataset.py --window-size 3
+python -m ml.training.train_models
+python -m ml.evaluation.evaluate_models
+```
+
+### 3) Start backend
+
+```bash
+python -m backend.main
+```
+
+Backend:
+
+- `http://localhost:8000`
+- Swagger: `http://localhost:8000/docs`
+
+### 4) Start frontend
 
 ```bash
 cd frontend
-npm install
+npm run dev
 ```
+
+Frontend:
+
+- `http://localhost:5173` (or `5174/5175` if port is busy)
+
+## Main API Endpoints
+
+- `POST /predict`
+  - accepts legacy input (`TBK5`, `TBK6`, `TBK7`) or flexible input (`target_semester`, `scores`)
+  - returns `predicted_TBK8`, `confidence`, `risk_label`, `truths`
+- `GET /model-metrics?target=4..8`
+- `GET /predictions-sample?target=4..8&limit=...`
+- `GET /risk-distribution?target=4..8`
+- `GET /risk-bands`
+- `GET /dataset/profile`
+- `POST /upload-dataset`
+
+## Notes
+
+- Run preprocessing/feature/training/evaluation again whenever you upload new raw data and need updated predictions.
+- Keep generated artifacts (`.pt`, processed CSV/NPY) out of Git via `.gitignore`.
 
