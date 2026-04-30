@@ -2,6 +2,34 @@
 
 This repository contains a complete research system to predict students' next semester GPA (`TBK`) using a **Neutrosophy-Driven Deep Learning** pipeline.
 
+```bash
+NCKH-project/
+├── backend/
+│   └── app/
+│
+├── frontend/
+│   └── src/
+│       ├── pages/
+│       ├── components/
+│       └── styles/
+│
+├── ml/
+│   ├── preprocessing/
+│   ├── feature_engineering/
+│   ├── training/
+│   ├── evaluation/
+│   └── saved_models/
+│
+├── data/
+│   ├── raw_excel/
+│   └── processed_dataset/
+│
+├── docs/
+│
+├── requirements.txt
+└── README.md
+```
+
 ## Architecture
 
 - `ml/`
